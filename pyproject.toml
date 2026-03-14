@@ -3,5 +3,7 @@ name = "desafio-openweather"
 version = "0.1.0"
 description = "desafio tecnico da caiena"
 readme = "README.md"
-requires-python = "=3.12"
-dependencies = []
+requires-python = "==3.12.*"
+dependencies = [
+    "fastapi>=0.115.0"
+]
