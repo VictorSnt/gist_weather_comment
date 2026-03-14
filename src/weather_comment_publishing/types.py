@@ -90,7 +90,7 @@ class CurrentWeather(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
     temperature_celsius: float
-    conditions: list[WeatherCondition] = Field(min_length=1)
+    condition: WeatherCondition
     observed_at: datetime
 
     @field_validator("observed_at")
@@ -102,7 +102,7 @@ class CurrentWeather(BaseModel):
 
     @property
     def primary_description(self) -> str:
-        return self.conditions[0].description
+        return self.condition.description
 
 
 class ForecastEntry(BaseModel):
@@ -110,7 +110,6 @@ class ForecastEntry(BaseModel):
 
     forecasted_at: datetime
     temperature_celsius: float
-    conditions: list[WeatherCondition] = Field(min_length=1)
 
     @field_validator("forecasted_at")
     @classmethod
@@ -118,10 +117,6 @@ class ForecastEntry(BaseModel):
         if value.tzinfo is None:
             raise ValueError("Forecasted at must be timezone-aware.")
         return value
-
-    @property
-    def primary_description(self) -> str:
-        return self.conditions[0].description
 
 
 class PublishedWeatherComment(BaseModel):
