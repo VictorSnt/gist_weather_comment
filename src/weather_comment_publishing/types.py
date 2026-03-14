@@ -101,8 +101,9 @@ class CurrentWeather(BaseModel):
         return value
 
     @property
-    def primary_description(self) -> str:
+    def current_condition(self) -> str:
         return self.condition.description
+
 
 
 class ForecastEntry(BaseModel):
