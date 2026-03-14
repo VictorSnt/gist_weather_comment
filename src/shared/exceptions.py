@@ -37,3 +37,11 @@ class LocationAmbiguousError(AppError):
 
 class WeatherProviderError(AppError):
     pass
+
+
+class ValidationError(AppError):
+    pass
+
+
+class ConfigError(AppError):
+    pass
