@@ -25,3 +25,15 @@ class GitHubGistIntegrationError(AppError):
 
 class GitHubClientError(AppError):
     pass
+
+
+class LocationNotFoundError(AppError):
+    pass
+
+
+class LocationAmbiguousError(AppError):
+    pass
+
+
+class WeatherProviderError(AppError):
+    pass
