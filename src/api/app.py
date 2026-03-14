@@ -11,6 +11,7 @@ def create_app() -> FastAPI:
     app = FastAPI()
     register_exception_handlers(app)
     app.include_router(git_gist_router)
+    return app
 
 
 if __name__ == "__main__":

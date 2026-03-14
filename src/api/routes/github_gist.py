@@ -2,7 +2,7 @@
 
 from fastapi.routing import APIRouter
 
-from shared.settings import Settings
+from src.shared.settings import Settings
 from src.weather_comment_publishing.types import CityQuery
 from src.api.schemas import (
     ErrorResponse,
@@ -42,7 +42,7 @@ async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 @git_gist_router.post(
-    "/v1/gists/weather-comments",
+    "/weather-comments",
     response_model=PublishWeatherCommentResponse,
     responses={
         400: {"model": ErrorResponse},

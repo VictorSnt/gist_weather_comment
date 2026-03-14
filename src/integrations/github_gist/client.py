@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 from github import Github
 from github.Gist import Gist
@@ -21,8 +20,8 @@ from src.shared.exceptions import (
     GitHubGistIntegrationError,
 )
 
-if TYPE_CHECKING:
-    from src.weather_comment_publishing.protocols import GistPublisherPort
+
+from src.weather_comment_publishing.protocols import GistPublisherPort
 
 
 @dataclass(frozen=True, slots=True)

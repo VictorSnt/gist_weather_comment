@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import unicodedata
-from typing import Any, TypeVar, overload, TYPE_CHECKING
+from typing import Any, TypeVar, overload
 
 import httpx
 from pydantic import BaseModel, TypeAdapter, ValidationError as PydanticValidationError
@@ -21,8 +21,7 @@ from src.shared.exceptions import (
     WeatherProviderError,
 )
 
-if TYPE_CHECKING:
-    from src.weather_comment_publishing.protocols import WeatherProviderPort
+from src.weather_comment_publishing.protocols import WeatherProviderPort
 
 
 ModelT = TypeVar("ModelT", bound=BaseModel)
