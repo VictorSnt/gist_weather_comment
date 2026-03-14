@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import unicodedata
-from typing import Any, TypeVar, overload
+from typing import Any, TypeVar, overload, TYPE_CHECKING
 
 import httpx
 from pydantic import BaseModel, TypeAdapter, ValidationError as PydanticValidationError
@@ -21,12 +21,16 @@ from src.shared.exceptions import (
     WeatherProviderError,
 )
 
+if TYPE_CHECKING:
+    from src.weather_comment_publishing.protocols import WeatherProviderPort
+
+
 ModelT = TypeVar("ModelT", bound=BaseModel)
 ParsedT = TypeVar("ParsedT")
 
 
 @dataclass(frozen=True, slots=True)
-class OpenWeatherApiClient:
+class OpenWeatherApiClient(WeatherProviderPort):
     api_key: str
     base_url: str
     language: str
@@ -35,7 +39,38 @@ class OpenWeatherApiClient:
     mapper: OpenWeatherMapper = field(default_factory=OpenWeatherMapper)
 
     async def resolve_city(self, query: CityQuery) -> ResolvedLocation:
-        payload = await self._request_json(
+        has_zipcode = bool(getattr(query, "zipcode", None))
+        if has_zipcode:
+            try:
+                return await self._resolve_by_zipcode(query)
+            except (LocationNotFoundError):
+                pass
+        return await self._resolve_by_name(query)
+
+    async def _resolve_by_zipcode(self, query: CityQuery) -> ResolvedLocation:
+        zipcode = query.zipcode
+        country_code = query.country
+        if not zipcode or not country_code:
+            raise LocationNotFoundError("Zipcode and country code required for zip search.")
+        
+        response = await self._request_json(
+            endpoint="/geo/1.0/zip",
+            params={
+                "zip": f"{zipcode},{country_code}",
+                "appid": self.api_key,
+            },
+            error_message="Failed to resolve location by zipcode from OpenWeather.",
+        )
+        if not response or not isinstance(response, dict):
+            raise LocationNotFoundError("Location not found by zipcode.")
+        try:
+            location_payload = GeocodingLocationPayload.model_validate(response)
+        except Exception:
+            raise LocationNotFoundError("Location not found by zipcode.")
+        return self.mapper.to_resolved_location(location_payload)
+
+    async def _resolve_by_name(self, query: CityQuery) -> ResolvedLocation:
+        response = await self._request_json(
             endpoint="/geo/1.0/direct",
             params={
                 "q": self._build_geocoding_query(query),
@@ -46,17 +81,15 @@ class OpenWeatherApiClient:
         )
         locations = self._parse_payload(
             GEOCODING_LOCATIONS,
-            payload,
+            response,
             error_message="Invalid OpenWeather geocoding payload.",
         )
-        matches = [location for location in locations if self._matches_geolocation_filters(location, query)]
-
-        if not matches:
+        filtered_locations = [loc for loc in locations if self._matches_geolocation_filters(loc, query)]
+        if not filtered_locations:
             raise LocationNotFoundError("Location not found.")
-        if len(matches) > 1:
+        if len(filtered_locations) > 1:
             raise LocationAmbiguousError("Location is ambiguous.")
-
-        return self.mapper.to_resolved_location(matches[0])
+        return self.mapper.to_resolved_location(filtered_locations[0])
 
     async def get_current_weather(self, coordinates: Coordinates) -> CurrentWeather:
         payload = await self._request_json(

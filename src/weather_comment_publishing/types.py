@@ -25,6 +25,7 @@ class CityQuery(BaseModel):
     city: NonEmptyStr
     state: str | None = None
     country: IsoCountryCode | None = None
+    zipcode: str | None = None
 
     @field_validator("state", mode="before")
     @classmethod
