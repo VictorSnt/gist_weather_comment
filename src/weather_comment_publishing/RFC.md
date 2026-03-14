@@ -45,6 +45,7 @@ Imutável, sem campos extras.
 | `city`    | str         | Sim         | Não pode ser vazio |
 | `state`   | str ou None | Não         | Deve ser nome completo (sem sigla), espaços normalizados |
 | `country` | str ou None | Não         | ISO-3166 alfa-2, normalizado para maiúsculas |
+| `zipcode` | str ou None | Não         | Opcional. Se informado, busca prioritária por CEP + país |
 
 Imutável, sem campos extras.
 
