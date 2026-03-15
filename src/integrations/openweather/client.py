@@ -38,24 +38,25 @@ class OpenWeatherApiClient(WeatherProviderPort):
     mapper: OpenWeatherMapper = field(default_factory=OpenWeatherMapper)
 
     async def resolve_city(self, query: CityQuery) -> ResolvedLocation:
-        has_zipcode = bool(getattr(query, "zipcode", None))
-        if has_zipcode:
-            try:
-                return await self._resolve_by_zipcode(query)
-            except (LocationNotFoundError):
-                pass
-        return await self._resolve_by_name(query)
+        if query.zipcode:
+            return await self._resolve_by_zipcode(query)
+
+        if query.city:
+            return await self._resolve_by_name(query)
+
+        raise LocationNotFoundError("City name or zipcode+country required for location search.")
 
     async def _resolve_by_zipcode(self, query: CityQuery) -> ResolvedLocation:
         zipcode = query.zipcode
         country_code = query.country
         if not zipcode or not country_code:
             raise LocationNotFoundError("Zipcode and country code required for zip search.")
-        
+
+        normalized_zipcode = self._normalize_zipcode_for_provider(zipcode, country_code)
         response = await self._request_json(
             endpoint="/geo/1.0/zip",
             params={
-                "zip": f"{zipcode},{country_code}",
+                "zip": f"{normalized_zipcode},{country_code}",
                 "appid": self.api_key,
             },
             error_message="Failed to resolve location by zipcode from OpenWeather.",
@@ -196,3 +197,10 @@ class OpenWeatherApiClient(WeatherProviderPort):
         normalized_case = normalized_spaces.casefold()
         without_accents = unicodedata.normalize("NFKD", normalized_case)
         return "".join(char for char in without_accents if not unicodedata.combining(char))
+
+    def _normalize_zipcode_for_provider(self, zipcode: str, country_code: str) -> str:
+        if country_code.upper() == "BR":
+            digits = "".join(char for char in zipcode if char.isdigit())
+            if len(digits) == 8:
+                return f"{digits[:5]}-{digits[5:]}"
+        return zipcode.strip()

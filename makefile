@@ -21,7 +21,7 @@ run:
 	@if [ -f .env ]; then \
 		set -a; . ./.env; set +a; \
 	fi; \
-	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run uvicorn src.api:create_app --factory --host $(HOST) --port $${HTTP_SERVER_PORT:-$(PORT)} --reload
+	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run uvicorn src.api.app:create_app --factory --host $(HOST) --port $${HTTP_SERVER_PORT:-$(PORT)} --reload
 
 test:
 	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest tests/unit

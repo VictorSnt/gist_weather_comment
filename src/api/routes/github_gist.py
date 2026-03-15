@@ -1,10 +1,12 @@
 
+import os
 
 from fastapi.routing import APIRouter
 
 from src.shared.settings import Settings
 from src.weather_comment_publishing.types import CityQuery
 from src.api.schemas import (
+    CityLocationRequest,
     ErrorResponse,
     PublishWeatherCommentRequest,
     PublishWeatherCommentResponse,
@@ -13,7 +15,6 @@ from src.weather_comment_publishing.formatter import WeatherCommentFormatter
 from src.weather_comment_publishing.service import WeatherCommentService
 from src.integrations.github_gist.client import GitHubGistClient
 from src.integrations.openweather.client import OpenWeatherApiClient
-from src.shared.settings import Settings
 
 
 git_gist_router = APIRouter(prefix="/v1/gists", tags=["github_gist"])
@@ -54,8 +55,13 @@ async def health() -> dict[str, str]:
     },
 )
 async def publish_weather_comment(request: PublishWeatherCommentRequest) -> PublishWeatherCommentResponse:
-    city_query = CityQuery(city=request.city, state=request.state, country=request.country)
-    service = _build_weather_comment_service(settings=Settings.from_env())
+    location = request.location
+    if isinstance(location, CityLocationRequest):
+        city_query = CityQuery(city=location.city, state=location.state, country=location.country, zipcode=None)
+    else:
+        city_query = CityQuery(city=None, state=None, country=location.country, zipcode=location.zipcode)
+
+    service = _build_weather_comment_service(settings=Settings.from_env(os.environ))
     result = await service.publish_weather_comment(
         gist_id=request.gist_id,
         city_query=city_query,
@@ -65,4 +71,3 @@ async def publish_weather_comment(request: PublishWeatherCommentRequest) -> Publ
         comment_id=result.comment_id,
         comment=result.comment,
     )
-
