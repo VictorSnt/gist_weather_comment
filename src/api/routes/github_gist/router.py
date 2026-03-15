@@ -3,11 +3,11 @@ import os
 
 from fastapi.routing import APIRouter
 
+from src.api.routes.github_gist.api_doc import publish_weather_comment_doc
 from src.shared.settings import Settings
 from src.weather_comment_publishing.types import CityQuery
 from src.api.schemas import (
     CityLocationRequest,
-    ErrorResponse,
     PublishWeatherCommentRequest,
     PublishWeatherCommentResponse,
 )
@@ -36,62 +36,13 @@ def _build_weather_comment_service(settings: Settings) -> WeatherCommentService:
         formatter=formatter,
     )
 
-
-
 @git_gist_router.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
 
 @git_gist_router.post(
     "/weather-comments",
-    summary="Publica comentário de clima em um Gist",
-    description=(
-        "Recebe um alvo de localidade por cidade ou CEP, consulta clima atual e previsão diária, "
-        "gera o comentário em português e publica no Gist informado."
-    ),
-    response_description="Comentário publicado com sucesso no Gist.",
-    response_model=PublishWeatherCommentResponse,
-    responses={
-        400: {"model": ErrorResponse},
-        403: {"model": ErrorResponse},
-        404: {"model": ErrorResponse},
-        409: {"model": ErrorResponse},
-        500: {"model": ErrorResponse},
-        502: {"model": ErrorResponse},
-    },
-    openapi_extra={
-        "requestBody": {
-            "content": {
-                "application/json": {
-                    "examples": {
-                        "by_city": {
-                            "summary": "Busca por cidade",
-                            "value": {
-                                "gist_id": "SEU_GIST_ID",
-                                "location": {
-                                    "kind": "city",
-                                    "city": "Sao Paulo",
-                                    "state": "Sao Paulo",
-                                    "country": "BR",
-                                },
-                            },
-                        },
-                        "by_zipcode": {
-                            "summary": "Busca por CEP",
-                            "value": {
-                                "gist_id": "SEU_GIST_ID",
-                                "location": {
-                                    "kind": "zipcode",
-                                    "zipcode": "01001000",
-                                    "country": "BR",
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-    },
+    **publish_weather_comment_doc,
 )
 async def publish_weather_comment(request: PublishWeatherCommentRequest) -> PublishWeatherCommentResponse:
     location = request.location
@@ -110,3 +61,4 @@ async def publish_weather_comment(request: PublishWeatherCommentRequest) -> Publ
         comment_id=result.comment_id,
         comment=result.comment,
     )
+

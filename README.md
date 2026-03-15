@@ -4,7 +4,7 @@ API HTTP em Python (FastAPI) que integra com:
 - OpenWeatherMap (clima atual + previsão de 5 dias)
 - GitHub Gist (publicação de comentário)
 
-A aplicação recebe a cidade e o `gist_id`, gera uma frase em português com temperatura atual e média diária dos próximos dias, e publica esse texto como comentário no Gist.
+A aplicação recebe um alvo de localidade (cidade ou CEP) e o `gist_id`, gera uma frase em português com temperatura atual e média diária dos próximos dias, e publica esse texto como comentário no Gist.
 
 ## Requisitos
 
@@ -88,19 +88,23 @@ Publica um comentário de clima no Gist informado.
 ```json
 {
   "gist_id": "<id-do-gist>",
-  "city": "São Paulo",
-  "state": "São Paulo",
-  "country": "BR",
-  "zipcode": "01001-000"
+  "location": {
+    "kind": "city",
+    "city": "Sao Paulo",
+    "state": "Sao Paulo",
+    "country": "BR"
+  }
 }
 ```
 
 Campos:
 - `gist_id` (obrigatório)
-- `city` (obrigatório)
-- `state` (opcional, aceita nome completo como `São Paulo`)
-- `country` (opcional, código ISO-3166 alfa-2, ex: `BR`)
-- `zipcode` (opcional, busca prioritária por CEP + país se informado)
+- `location.kind` (obrigatório): `city` ou `zipcode`
+- `location.city` (obrigatório quando `kind=city`)
+- `location.state` (opcional quando `kind=city`, nome completo)
+- `location.country` (opcional em `city`, obrigatório em `zipcode`, ISO-3166 alfa-2)
+- `location.zipcode` (obrigatório quando `kind=zipcode`)
+- Para `country=BR`, o CEP aceita `01001000` ou `01001-000` e será normalizado para `01001-000`
 
 #### Exemplo com curl
 
@@ -109,10 +113,11 @@ curl -X POST 'http://localhost:8000/v1/gists/weather-comments' \
   -H 'Content-Type: application/json' \
   -d '{
     "gist_id": "SEU_GIST_ID",
-    "city": "São Paulo",
-    "state": "São Paulo",
-    "country": "BR",
-    "zipcode": "01001-000"
+    "location": {
+      "kind": "zipcode",
+      "zipcode": "01001000",
+      "country": "BR"
+    }
   }'
 ```
 
@@ -128,7 +133,7 @@ curl -X POST 'http://localhost:8000/v1/gists/weather-comments' \
 
 ## Saúde da aplicação
 
-- `GET /health`
+- `GET /v1/gists/health`
 
 Resposta esperada:
 
@@ -145,5 +150,6 @@ Resposta esperada:
 - `src/integrations/github_gist/`: integração com GitHub Gist (PyGithub)
 - `src/api/`: API FastAPI
 - `src/shared/`: configuração e exceções compartilhadas
-- `tests/unit/weather_comment_publishing/`: testes unitários de domínio (formatter, service e types)
-- `tests/unit/integrations/`: testes unitários das integrações
+- `tests/weather_comment_publishing/unit/`: testes unitários de domínio
+- `tests/integrations/openweather/unit/`: testes unitários da integração OpenWeather
+- `tests/api/unit/`: testes unitários de schema/contrato da API

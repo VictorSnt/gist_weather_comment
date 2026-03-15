@@ -11,8 +11,8 @@ help:
 	@echo "Targets disponíveis:"
 	@echo "  make sync          - instala/sincroniza dependências com uv"
 	@echo "  make run           - sobe a API FastAPI com uvicorn"
-	@echo "  make test          - roda testes unitários com pytest"
-	@echo "  make test-verbose  - roda testes unitários com saída detalhada"
+	@echo "  make test          - roda todos os testes com pytest"
+	@echo "  make test-verbose  - roda todos os testes com saída detalhada"
 
 sync:
 	UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv sync --python $(PYTHON) --group dev
@@ -24,7 +24,7 @@ run:
 	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run uvicorn src.api.app:create_app --factory --host $(HOST) --port $${HTTP_SERVER_PORT:-$(PORT)} --reload
 
 test:
-	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest tests/unit
+	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest tests
 
 test-verbose:
-	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest -vv tests/unit
+	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest -vv tests

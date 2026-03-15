@@ -5,7 +5,7 @@ import os
 from fastapi import FastAPI
 
 from src.api.errors import register_exception_handlers
-from src.api.routes.github_gist import git_gist_router
+from src.api.routes.github_gist.router import git_gist_router
 
 def create_app() -> FastAPI:
     app = FastAPI()
