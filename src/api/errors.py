@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
 
@@ -40,6 +41,13 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(ValidationError)
     async def validation_error_handler(_: Request, exception: ValidationError) -> JSONResponse:
         return _json_error(400, "invalid_request", str(exception), field=exception.field)
+
+    @app.exception_handler(RequestValidationError)
+    async def request_validation_error_handler(_: Request, exception: RequestValidationError) -> JSONResponse:
+        first_error = exception.errors()[0] if exception.errors() else None
+        field = str(first_error["loc"][-1]) if first_error and first_error.get("loc") else None
+        message = str(first_error["msg"]) if first_error else str(exception)
+        return _json_error(422, "invalid_request", message, field=field)
 
     @app.exception_handler(PydanticValidationError)
     async def pydantic_validation_error_handler(_: Request, exception: PydanticValidationError) -> JSONResponse:

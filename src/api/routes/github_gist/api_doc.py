@@ -10,10 +10,10 @@ publish_weather_comment_doc = {
     "response_description": "Comentário publicado com sucesso no Gist.",
     "response_model": PublishWeatherCommentResponse,
     "responses": {
-        400: {"model": ErrorResponse},
         403: {"model": ErrorResponse},
         404: {"model": ErrorResponse},
         409: {"model": ErrorResponse},
+        422: {"model": ErrorResponse},
         500: {"model": ErrorResponse},
         502: {"model": ErrorResponse},
     },
