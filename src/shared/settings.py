@@ -11,7 +11,6 @@ class Settings:
     openweather_api_key: str
     openweather_base_url: str
     openweather_language: str
-    openweather_units: str
     github_token: str
     http_host: str
     http_port: int
@@ -24,7 +23,6 @@ class Settings:
             openweather_api_key=cls._required_env(environ, "OPENWEATHER_API_KEY"),
             openweather_base_url=cls._optional_env(environ, "OPENWEATHER_BASE_URL", "https://api.openweathermap.org"),
             openweather_language=cls._optional_env(environ, "OPENWEATHER_LANGUAGE", "pt_br"),
-            openweather_units=cls._optional_env(environ, "OPENWEATHER_UNITS", "metric"),
             github_token=cls._required_env(environ, "GITHUB_TOKEN"),
             http_host=cls._optional_env(environ, "HTTP_SERVER_HOST", "0.0.0.0"),
             http_port=cls._optional_int(environ, "HTTP_SERVER_PORT", 8000),

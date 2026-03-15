@@ -146,7 +146,7 @@ Resposta esperada:
 ## Estrutura resumida
 
 - `src/weather_comment_publishing/`: núcleo de domínio/aplicação (formatter, service, types, protocols)
-- `src/integrations/openweather/`: SDK OpenWeatherMap
+- `src/integrations/openweather/`: SDK OpenWeatherMap (documentação em `src/integrations/openweather/SDK.md`)
 - `src/integrations/github_gist/`: integração com GitHub Gist (PyGithub)
 - `src/api/`: API FastAPI
 - `src/shared/`: configuração e exceções compartilhadas

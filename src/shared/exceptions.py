@@ -39,6 +39,10 @@ class WeatherProviderError(AppError):
     pass
 
 
+class ProviderContractError(AppError):
+    pass
+
+
 class ValidationError(AppError):
     pass
 

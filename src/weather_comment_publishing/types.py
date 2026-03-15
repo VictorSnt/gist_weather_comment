@@ -4,12 +4,8 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from typing_extensions import Annotated
 
 from src.integrations.openweather.types import (
-    Coordinates,
-    CurrentWeather,
-    ForecastEntry,
     LocationQuery,
     ResolvedLocation,
-    WeatherCondition,
 )
 
 NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]

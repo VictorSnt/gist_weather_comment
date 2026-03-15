@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
@@ -13,9 +13,27 @@ from src.shared.exceptions import (
     GitHubClientError,
     LocationAmbiguousError,
     LocationNotFoundError,
+    ProviderContractError,
     ValidationError,
     WeatherProviderError,
 )
+
+logger = logging.getLogger(__name__)
+
+
+def _log_exception_with_cause(message: str, exception: Exception) -> None:
+    cause = exception.__cause__
+    if cause is None:
+        logger.error(message, exc_info=(type(exception), exception, exception.__traceback__))
+        return
+
+    logger.error(
+        "%s | cause=%s: %s",
+        message,
+        type(cause).__name__,
+        str(cause),
+        exc_info=(type(exception), exception, exception.__traceback__),
+    )
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -52,22 +70,32 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(WeatherProviderError)
     async def weather_provider_error_handler(_: Request, exception: WeatherProviderError) -> JSONResponse:
+        _log_exception_with_cause(f"Weather provider error: {exception}", exception)
         return _json_error(502, "upstream_failure", str(exception))
+
+    @app.exception_handler(ProviderContractError)
+    async def provider_contract_error_handler(_: Request, exception: ProviderContractError) -> JSONResponse:
+        _log_exception_with_cause(f"Provider contract error: {exception}", exception)
+        return _json_error(500, "integration_contract_error", str(exception))
 
     @app.exception_handler(GitHubGistIntegrationError)
     async def github_gist_integration_error_handler(_: Request, exception: GitHubGistIntegrationError) -> JSONResponse:
+        _log_exception_with_cause(f"GitHub Gist integration error: {exception}", exception)
         return _json_error(502, "upstream_failure", str(exception))
 
     @app.exception_handler(GitHubClientError)
     async def github_client_error_handler(_: Request, exception: GitHubClientError) -> JSONResponse:
+        _log_exception_with_cause(f"GitHub client error: {exception}", exception)
         return _json_error(502, "upstream_failure", str(exception))
 
     @app.exception_handler(ConfigError)
     async def config_error_handler(_: Request, exception: ConfigError) -> JSONResponse:
+        _log_exception_with_cause(f"Configuration error: {exception}", exception)
         return _json_error(500, "configuration_error", str(exception), field=exception.field)
 
     @app.exception_handler(Exception)
     async def unexpected_error_handler(_: Request, __: Exception) -> JSONResponse:
+        _log_exception_with_cause(f"Unexpected error: {__}", __)
         return _json_error(500, "internal_error", "Internal server error.")
 
 

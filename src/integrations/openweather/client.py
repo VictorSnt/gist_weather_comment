@@ -26,7 +26,7 @@ ParsedT = TypeVar("ParsedT")
 
 
 @dataclass(frozen=True, slots=True)
-class OpenWeatherApiClient:
+class OpenWeather:
     """OpenWeather HTTP SDK client."""
 
     api_key: str

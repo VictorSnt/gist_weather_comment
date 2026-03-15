@@ -13,21 +13,23 @@ from src.api.schemas import (
 )
 from src.weather_comment_publishing.formatter import WeatherCommentFormatter
 from src.weather_comment_publishing.service import WeatherCommentService
+from src.weather_comment_publishing.adapters.openweather_provider import OpenWeatherProviderAdapter
 from src.integrations.github_gist.client import GitHubGistClient
-from src.integrations.openweather.client import OpenWeatherApiClient
+from src.integrations.openweather import OpenWeather
 
 
 git_gist_router = APIRouter(prefix="/v1/gists", tags=["github_gist"])
 
 
 def _build_weather_comment_service(settings: Settings) -> WeatherCommentService:
-    openweather_client = OpenWeatherApiClient(
+    openweather_sdk = OpenWeather(
         api_key=settings.openweather_api_key,
         base_url=settings.openweather_base_url,
         language=settings.openweather_language,
-        units=settings.openweather_units,
+        units="metric",
         timeout_seconds=settings.http_timeout_seconds,
     )
+    openweather_client = OpenWeatherProviderAdapter(sdk_client=openweather_sdk)
     github_client = GitHubGistClient(token=settings.github_token)
     formatter = WeatherCommentFormatter(forecast_days_limit=settings.forecast_days_limit)
     return WeatherCommentService(
@@ -61,4 +63,3 @@ async def publish_weather_comment(request: PublishWeatherCommentRequest) -> Publ
         comment_id=result.comment_id,
         comment=result.comment,
     )
-
