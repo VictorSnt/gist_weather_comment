@@ -14,7 +14,6 @@ from src.integrations.openweather.types import (
     WeatherCondition,
 )
 
-OpenWeatherClient = OpenWeather
 
 __all__ = [
     "Coordinates",
@@ -22,7 +21,6 @@ __all__ = [
     "ForecastEntry",
     "LocationQuery",
     "OpenWeather",
-    "OpenWeatherClient",
     "OpenWeatherContractError",
     "OpenWeatherNotFoundError",
     "OpenWeatherRequestError",
