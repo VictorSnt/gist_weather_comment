@@ -3,7 +3,7 @@
 **Status:** Draft  
 **Autor:** Victor Santos  
 **Data:** 2026-03-14  
-**Versão:** 0.0.2
+**Versão:** 0.0.3
 
 ---
 
@@ -42,12 +42,19 @@ Imutável, sem campos extras.
 
 | Campo     | Tipo        | Obrigatório | Observação |
 |-----------|-------------|-------------|------------|
-| `city`    | str         | Sim         | Não pode ser vazio |
+| `city`    | str ou None | Não         | Não pode ser vazio quando informado |
 | `state`   | str ou None | Não         | Deve ser nome completo (sem sigla), espaços normalizados |
 | `country` | str ou None | Não         | ISO-3166 alfa-2, normalizado para maiúsculas |
-| `zipcode` | str ou None | Não         | Opcional. Se informado, busca prioritária por CEP + país |
+| `zipcode` | str ou None | Não         | Não pode ser vazio quando informado |
 
 Imutável, sem campos extras.
+
+Regras combinadas de `CityQuery`:
+
+- Deve informar exatamente um entre `city` e `zipcode`
+- `state` só pode ser informado quando `city` for informado
+- `zipcode` exige `country`
+- Para `country=BR`, `zipcode` deve conter 8 dígitos e é normalizado para `12345-678`
 
 ### 3.3. ResolvedLocation
 
@@ -163,8 +170,10 @@ A segunda frase só aparece quando houver previsão futura.
 
 ## 6. Fluxo de Execução
 
-1. Receber `gist_id` e `city_query`
-2. Resolver localidade via `resolve_city`
+1. Receber `gist_id` e `city_query` (já validado com estratégia única: cidade ou CEP)
+2. Resolver localidade via `resolve_city` conforme estratégia:
+   - `zipcode` + `country`: busca por CEP
+   - `city` (+ filtros opcionais): busca por nome
 3. Buscar clima atual via `get_current_weather`
 4. Buscar previsão via `get_five_day_forecast`
 5. Gerar texto com `format_comment`

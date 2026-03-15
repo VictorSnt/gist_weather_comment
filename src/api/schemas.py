@@ -32,10 +32,18 @@ def _normalize_zipcode_for_country(zipcode: str, country: str) -> str:
 
 
 class CityLocationRequest(BaseModel):
-    kind: Literal["city"]
-    city: str
-    state: str | None = None
-    country: str | None = None
+    kind: Literal["city"] = Field(description="Tipo da busca de localidade.")
+    city: str = Field(description="Nome da cidade.", examples=["Sao Paulo"])
+    state: str | None = Field(
+        default=None,
+        description="Nome completo do estado/província (sem sigla).",
+        examples=["Sao Paulo"],
+    )
+    country: str | None = Field(
+        default=None,
+        description="Código ISO-3166 alfa-2.",
+        examples=["BR"],
+    )
 
     @field_validator("city", "state")
     @classmethod
@@ -51,9 +59,12 @@ class CityLocationRequest(BaseModel):
 
 
 class ZipcodeLocationRequest(BaseModel):
-    kind: Literal["zipcode"]
-    zipcode: str
-    country: str
+    kind: Literal["zipcode"] = Field(description="Tipo da busca de localidade.")
+    zipcode: str = Field(
+        description="CEP/código postal. Para BR, aceita com ou sem hífen e normaliza para 12345-678.",
+        examples=["01001-000", "01001000"],
+    )
+    country: str = Field(description="Código ISO-3166 alfa-2.", examples=["BR"])
 
     @field_validator("zipcode")
     @classmethod
@@ -80,8 +91,8 @@ LocationRequest = Annotated[CityLocationRequest | ZipcodeLocationRequest, Field(
 class PublishWeatherCommentRequest(BaseModel):
     """Requisição para publicar comentário meteorológico."""
 
-    gist_id: str = Field(..., min_length=1)
-    location: LocationRequest
+    gist_id: str = Field(..., min_length=1, description="ID do Gist que receberá o comentário.")
+    location: LocationRequest = Field(description="Objeto discriminado por 'kind': city ou zipcode.")
 
     @field_validator("gist_id")
     @classmethod
@@ -93,12 +104,12 @@ class PublishWeatherCommentRequest(BaseModel):
 
 
 class PublishWeatherCommentResponse(BaseModel):
-    gist_id: str
-    comment_id: int
-    comment: str
+    gist_id: str = Field(description="ID do Gist comentado.")
+    comment_id: int = Field(description="ID do comentário criado no Gist.")
+    comment: str = Field(description="Texto publicado no comentário.")
 
 
 class ErrorResponse(BaseModel):
-    error_code: str
-    message: str
-    field: str | None = None
+    error_code: str = Field(description="Código estável de erro.")
+    message: str = Field(description="Mensagem de erro para diagnóstico.")
+    field: str | None = Field(default=None, description="Campo relacionado ao erro, quando aplicável.")
