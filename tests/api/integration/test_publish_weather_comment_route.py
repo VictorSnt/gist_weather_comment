@@ -8,6 +8,7 @@ import pytest
 from src.api.app import create_app
 from src.api.routes.github_gist import router as github_gist_router
 from src.shared.exceptions import (
+    GitHubGistIntegrationError,
     LocationAmbiguousError,
     LocationNotFoundError,
     ProviderContractError,
@@ -73,29 +74,6 @@ def _published_comment() -> PublishedWeatherComment:
     )
 
 
-def _city_request() -> dict:
-    return {
-        "gist_id": "abc123",
-        "location": {
-            "kind": "city",
-            "city": "Sao Paulo",
-            "state": "Sao Paulo",
-            "country": "br",
-        },
-    }
-
-
-def _zipcode_request() -> dict:
-    return {
-        "gist_id": "abc123",
-        "location": {
-            "kind": "zipcode",
-            "zipcode": "01001000",
-            "country": "br",
-        },
-    }
-
-
 class TestPublishWeatherCommentRoute:
     def test_post_weather_comments_by_city_returns_200_and_normalizes_city_query(
         self,
@@ -106,7 +84,15 @@ class TestPublishWeatherCommentRoute:
 
         response = client.post(
             "/v1/gists/weather-comments",
-            json=_city_request(),
+            json={
+                "gist_id": "abc123",
+                "location": {
+                    "kind": "city",
+                    "city": "Sao Paulo",
+                    "state": "Sao Paulo",
+                    "country": "br",
+                },
+            },
         )
 
         assert response.status_code == 200
@@ -132,7 +118,14 @@ class TestPublishWeatherCommentRoute:
 
         response = client.post(
             "/v1/gists/weather-comments",
-            json=_zipcode_request(),
+            json={
+                "gist_id": "abc123",
+                "location": {
+                    "kind": "zipcode",
+                    "zipcode": "01001000",
+                    "country": "br",
+                },
+            },
         )
 
         assert response.status_code == 200
@@ -152,26 +145,11 @@ class TestPublishWeatherCommentRoute:
     @pytest.mark.parametrize(
         ("error", "expected_status", "expected_error_code"),
         [
-            (
-                LocationNotFoundError("Location not found."),
-                404,
-                "location_not_found",
-            ),
-            (
-                LocationAmbiguousError("Location is ambiguous."),
-                409,
-                "location_ambiguous",
-            ),
-            (
-                ProviderContractError("Unexpected 404 from provider."),
-                500,
-                "integration_contract_error",
-            ),
-            (
-                WeatherProviderError("Upstream timeout."),
-                502,
-                "upstream_failure",
-            ),
+            (LocationNotFoundError("Location not found."), 404, "location_not_found"),
+            (LocationAmbiguousError("Location is ambiguous."), 409, "location_ambiguous"),
+            (ProviderContractError("Unexpected 404 from provider."), 500, "integration_contract_error"),
+            (WeatherProviderError("Upstream timeout."), 502, "upstream_failure"),
+            (GitHubGistIntegrationError("GitHub unavailable."), 502, "upstream_failure"),
         ],
     )
     def test_post_weather_comments_maps_domain_errors_to_http_responses(
@@ -197,3 +175,25 @@ class TestPublishWeatherCommentRoute:
 
         assert response.status_code == expected_status
         assert response.json()["error_code"] == expected_error_code
+
+    def test_post_weather_comments_returns_422_for_invalid_request(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        service = FakeWeatherCommentService(result=_published_comment())
+        client = _build_client(monkeypatch, service=service)
+
+        response = client.post(
+            "/v1/gists/weather-comments",
+            json={
+                "gist_id": "abc123",
+                "location": {
+                    "kind": "district",
+                    "city": "Sao Paulo",
+                },
+            },
+        )
+
+        assert response.status_code == 422
+        assert service.received_gist_id is None
+        assert service.received_city_query is None
