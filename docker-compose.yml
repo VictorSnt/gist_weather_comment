@@ -1,16 +1,16 @@
 services:
   api:
-    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: weather-comment-api:latest
     container_name: weather-comment-api
-    working_dir: /app
     env_file:
       - .env
     environment:
       PYTHONPATH: /app
-    volumes:
-      - ./:/app
+      UV_PROJECT_ENVIRONMENT: /app/.venv
     ports:
       - "${HTTP_SERVER_PORT:-8000}:${HTTP_SERVER_PORT:-8000}"
-    command: >
-      sh -c "uv sync --frozen &&
-      uv run uvicorn src.api.app:create_app --factory --host 0.0.0.0 --port ${HTTP_SERVER_PORT:-8000}"
+    command: ["uv", "run", "uvicorn", "src.api.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "${HTTP_SERVER_PORT:-8000}"]
+    restart: unless-stopped

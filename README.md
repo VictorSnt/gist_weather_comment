@@ -34,7 +34,7 @@ source .env
 set +a
 ```
 
-4. Instale/sincronize dependências:
+4. Instale/sincronize dependências (usa o `uv.lock` versionado para garantir reprodutibilidade):
 
 ```bash
 make sync
@@ -66,10 +66,13 @@ make test-verbose
 make help
 ```
 
-## Executar com Docker
+## Executar com Docker (produção-like)
 
-1. Garanta que o arquivo `.env` esteja preenchido.
-2. Suba a API com Docker Compose:
+- Requisitos: Docker e Docker Compose.
+- O build já instala as dependências de produção a partir do `uv.lock` (sem dev), sem depender de cache local.
+
+1. Garanta que o arquivo `.env` esteja preenchido (será lido pelo Compose).
+2. Faça o build e suba a API:
 
 ```bash
 docker compose up --build

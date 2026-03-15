@@ -4,18 +4,23 @@ PORT ?= 8000
 UV_CACHE_DIR ?= /tmp/.uv-cache
 PYTHONPATH ?= .
 UV_PROJECT_ENVIRONMENT ?= .venv
+UV_SYNC_FLAGS ?= --frozen --python $(PYTHON)
 
-.PHONY: help sync run test test-verbose
+.PHONY: help sync sync-prod run test test-verbose
 
 help:
 	@echo "Targets disponíveis:"
 	@echo "  make sync          - instala/sincroniza dependências com uv"
+	@echo "  make sync-prod     - instala dependências de produção (sem dev)"
 	@echo "  make run           - sobe a API FastAPI com uvicorn"
 	@echo "  make test          - roda todos os testes com pytest"
 	@echo "  make test-verbose  - roda todos os testes com saída detalhada"
 
 sync:
-	UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv sync --python $(PYTHON) --group dev
+	UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv sync $(UV_SYNC_FLAGS) --group dev
+
+sync-prod:
+	UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv sync $(UV_SYNC_FLAGS)
 
 run:
 	@if [ -f .env ]; then \
