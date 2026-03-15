@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta, timezone
 
-from src.weather_comment_publishing.types import (
+from src.integrations.openweather.types import (
     Coordinates,
     CurrentWeather,
     ForecastEntry,
