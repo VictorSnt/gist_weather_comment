@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.weather_comment_publishing.formatter import WeatherCommentFormatter
-from src.weather_comment_publishing.protocols import GistPublisherPort, WeatherProviderPort
+from src.weather_comment_publishing.protocols import GistPublisherPort, WeatherCommentFormatterPort, WeatherProviderPort
 from src.weather_comment_publishing.types import CityQuery, PublishedWeatherComment
 
 
@@ -11,7 +10,7 @@ from src.weather_comment_publishing.types import CityQuery, PublishedWeatherComm
 class WeatherCommentService:
     openweather_client: WeatherProviderPort
     github_gist_client: GistPublisherPort
-    formatter: WeatherCommentFormatter
+    formatter: WeatherCommentFormatterPort
 
     async def publish_weather_comment(self, *, gist_id: str, city_query: CityQuery) -> PublishedWeatherComment:
         resolved_location = await self.openweather_client.resolve_city(query=city_query)

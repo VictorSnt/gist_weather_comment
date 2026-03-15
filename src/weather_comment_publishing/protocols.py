@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Protocol
+from typing import Sequence
 
 from src.weather_comment_publishing.types import CityQuery, Coordinates, CurrentWeather, ForecastEntry, ResolvedLocation
 
@@ -15,3 +16,13 @@ class WeatherProviderPort(Protocol):
 
 class GistPublisherPort(Protocol):
     async def publish_comment(self, gist_id: str, content: str) -> int: ...
+
+
+class WeatherCommentFormatterPort(Protocol):
+    def format_comment(
+        self,
+        *,
+        location: ResolvedLocation,
+        current_weather: CurrentWeather,
+        forecast_entries: Sequence[ForecastEntry],
+    ) -> str: ...
