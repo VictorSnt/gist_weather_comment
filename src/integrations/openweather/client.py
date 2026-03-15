@@ -60,6 +60,7 @@ class OpenWeatherApiClient(WeatherProviderPort):
                 "appid": self.api_key,
             },
             error_message="Failed to resolve location by zipcode from OpenWeather.",
+            not_found_message="Location not found by zipcode.",
         )
         if not response or not isinstance(response, dict):
             raise LocationNotFoundError("Location not found by zipcode.")
@@ -135,6 +136,7 @@ class OpenWeatherApiClient(WeatherProviderPort):
         endpoint: str,
         params: dict[str, str],
         error_message: str,
+        not_found_message: str | None = None,
     ) -> object:
         url = f"{self.base_url.rstrip('/')}{endpoint}"
         try:
@@ -142,8 +144,14 @@ class OpenWeatherApiClient(WeatherProviderPort):
                 response = await client.get(url, params=params)
                 response.raise_for_status()
                 return response.json()
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404 and not_found_message:
+                raise LocationNotFoundError(not_found_message) from exc
+            raise WeatherProviderError(
+                f"{error_message} [endpoint={endpoint}, status={exc.response.status_code}]",
+            ) from exc
         except httpx.HTTPError as exc:
-            raise WeatherProviderError(error_message) from exc
+            raise WeatherProviderError(f"{error_message} [endpoint={endpoint}]") from exc
 
     @overload
     def _parse_payload(
