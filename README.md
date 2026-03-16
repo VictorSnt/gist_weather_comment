@@ -156,7 +156,7 @@ Principais códigos:
 
 ## Saúde da aplicação
 
-- `GET /v1/gists/health`
+- `GET /health`
 
 Resposta esperada:
 

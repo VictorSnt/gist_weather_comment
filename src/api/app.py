@@ -11,8 +11,12 @@ def create_app() -> FastAPI:
     app = FastAPI()
     register_exception_handlers(app)
     app.include_router(git_gist_router)
-    return app
 
+    @app.get("/health")
+    async def health() -> dict[str, str]:
+        return {"status": "ok"}
+
+    return app
 
 if __name__ == "__main__":
     import uvicorn
