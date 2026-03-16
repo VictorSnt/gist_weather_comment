@@ -38,10 +38,6 @@ def _build_weather_comment_service(settings: Settings) -> WeatherCommentService:
         formatter=formatter,
     )
 
-@git_gist_router.get("/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok"}
-
 @git_gist_router.post(
     "/weather-comments",
     **publish_weather_comment_doc,
