@@ -8,7 +8,7 @@ A aplicação recebe um alvo de localidade (cidade ou CEP) e o `gist_id`, gera u
 
 ## Requisitos
 
-- Python 3.12+
+- Python 3.12.x
 - [uv](https://docs.astral.sh/uv/)
 - Chave da API OpenWeatherMap
 - Token clássico do GitHub com permissão para Gist (`gist` scope)
@@ -130,7 +130,7 @@ curl -X POST 'http://localhost:8000/v1/gists/weather-comments' \
 {
   "gist_id": "SEU_GIST_ID",
   "comment_id": 123456789,
-  "comment": "34°C e nublado em São Paulo, São Paulo em 12/12. Média para os próximos dias: 32°C em 13/12, 25°C em 14/12, 29°C em 15/12, 33°C em 16/12 e 28°C em 17/12."
+  "comment": "34°C e nublado em Sao Paulo em 12/12. Média para os próximos dias: 32°C em 13/12, 25°C em 14/12, 29°C em 15/12, 33°C em 16/12 e 28°C em 17/12."
 }
 ```
 
@@ -154,5 +154,4 @@ Resposta esperada:
 - `src/api/`: API FastAPI
 - `src/shared/`: configuração e exceções compartilhadas
 - `tests/weather_comment_publishing/unit/`: testes unitários de domínio
-- `tests/integrations/openweather/unit/`: testes unitários da integração OpenWeather
-- `tests/api/unit/`: testes unitários de schema/contrato da API
+- `tests/api/integration/`: testes de integração da API
