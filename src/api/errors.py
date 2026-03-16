@@ -11,11 +11,9 @@ from src.shared.exceptions import (
     GistCommentNotAllowedError,
     GitHubGistIntegrationError,
     GistNotFoundError,
-    GitHubClientError,
     LocationAmbiguousError,
     LocationNotFoundError,
     ProviderContractError,
-    ValidationError,
     WeatherProviderError,
 )
 
@@ -38,9 +36,6 @@ def _log_exception_with_cause(message: str, exception: Exception) -> None:
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    @app.exception_handler(ValidationError)
-    async def validation_error_handler(_: Request, exception: ValidationError) -> JSONResponse:
-        return _json_error(400, "invalid_request", str(exception), field=exception.field)
 
     @app.exception_handler(RequestValidationError)
     async def request_validation_error_handler(_: Request, exception: RequestValidationError) -> JSONResponse:
@@ -89,11 +84,6 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(GitHubGistIntegrationError)
     async def github_gist_integration_error_handler(_: Request, exception: GitHubGistIntegrationError) -> JSONResponse:
         _log_exception_with_cause(f"GitHub Gist integration error: {exception}", exception)
-        return _json_error(502, "upstream_failure", str(exception))
-
-    @app.exception_handler(GitHubClientError)
-    async def github_client_error_handler(_: Request, exception: GitHubClientError) -> JSONResponse:
-        _log_exception_with_cause(f"GitHub client error: {exception}", exception)
         return _json_error(502, "upstream_failure", str(exception))
 
     @app.exception_handler(ConfigError)

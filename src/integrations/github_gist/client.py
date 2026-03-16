@@ -12,7 +12,6 @@ from github.GithubException import (
     UnknownObjectException,
 )
 
-from src.integrations.github_gist.schemas import GistCommentPayload
 from src.shared.exceptions import (
     GistAccessDeniedError,
     GistCommentNotAllowedError,
@@ -54,8 +53,8 @@ class GitHubGistClient(GistPublisherPort):
         gist = self._get_gist(gist_id)
         try:
             created_comment = gist.create_comment(body=content)
-            payload = GistCommentPayload(id=int(created_comment.id))
-            return payload.id
+            comment_id = int(created_comment.id)
+            return comment_id
         
         except UnknownObjectException as exc:
             raise GistNotFoundError("Gist not found.") from exc

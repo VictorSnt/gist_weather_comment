@@ -12,8 +12,6 @@ class Settings:
     openweather_base_url: str
     openweather_language: str
     github_token: str
-    http_host: str
-    http_port: int
     http_timeout_seconds: float
     forecast_days_limit: int
 
@@ -24,8 +22,6 @@ class Settings:
             openweather_base_url=cls._optional_env(environ, "OPENWEATHER_BASE_URL", "https://api.openweathermap.org"),
             openweather_language=cls._optional_env(environ, "OPENWEATHER_LANGUAGE", "pt_br"),
             github_token=cls._required_env(environ, "GITHUB_TOKEN"),
-            http_host=cls._optional_env(environ, "HTTP_SERVER_HOST", "0.0.0.0"),
-            http_port=cls._optional_int(environ, "HTTP_SERVER_PORT", 8000),
             http_timeout_seconds=cls._optional_float(environ, "HTTP_CLIENT_TIMEOUT_SECONDS", 10.0),
             forecast_days_limit=cls._optional_int(environ, "FORECAST_DAYS_LIMIT", 5),
         )

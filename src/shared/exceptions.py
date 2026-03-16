@@ -23,10 +23,6 @@ class GitHubGistIntegrationError(AppError):
     pass
 
 
-class GitHubClientError(AppError):
-    pass
-
-
 class LocationNotFoundError(AppError):
     pass
 
@@ -40,10 +36,6 @@ class WeatherProviderError(AppError):
 
 
 class ProviderContractError(AppError):
-    pass
-
-
-class ValidationError(AppError):
     pass
 
 
