@@ -6,10 +6,7 @@ import unicodedata
 from src.integrations.openweather import OpenWeather
 from src.integrations.openweather import (
     Coordinates as OpenWeatherCoordinates,
-    CurrentWeather as OpenWeatherCurrentWeather,
-    ForecastEntry as OpenWeatherForecastEntry,
     ResolvedLocation as OpenWeatherResolvedLocation,
-    WeatherCondition as OpenWeatherCondition,
 )
 from src.integrations.openweather.exceptions import (
     OpenWeatherContractError,
@@ -83,7 +80,16 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                     longitude=coordinates.longitude,
                 )
             )
-            return self._to_domain_current_weather(weather)
+            return CurrentWeather(
+                temperature_celsius=weather.temperature_celsius,
+                condition=WeatherCondition(
+                    code=weather.condition.code,
+                    group=weather.condition.group,
+                    description=weather.condition.description,
+                    icon=weather.condition.icon,
+                ),
+                observed_at=weather.observed_at,
+            )
         except OpenWeatherContractError as exc:
             raise ProviderContractError(str(exc)) from exc
         except OpenWeatherRequestError as exc:
@@ -100,7 +106,13 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                     longitude=coordinates.longitude,
                 )
             )
-            return [self._to_domain_forecast_entry(entry) for entry in entries]
+            return [
+                ForecastEntry(
+                    forecasted_at=entry.forecasted_at,
+                    temperature_celsius=entry.temperature_celsius,
+                )
+                for entry in entries
+            ]
         except OpenWeatherContractError as exc:
             raise ProviderContractError(str(exc)) from exc
         except OpenWeatherRequestError as exc:
@@ -140,36 +152,4 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                 latitude=location.coordinates.latitude,
                 longitude=location.coordinates.longitude,
             ),
-        )
-
-    @staticmethod
-    def _to_domain_current_weather(
-        weather: OpenWeatherCurrentWeather,
-    ) -> CurrentWeather:
-        return CurrentWeather(
-            temperature_celsius=weather.temperature_celsius,
-            condition=OpenWeatherProviderAdapter._to_domain_condition(
-                weather.condition
-            ),
-            observed_at=weather.observed_at,
-        )
-
-    @staticmethod
-    def _to_domain_forecast_entry(
-        entry: OpenWeatherForecastEntry,
-    ) -> ForecastEntry:
-        return ForecastEntry(
-            forecasted_at=entry.forecasted_at,
-            temperature_celsius=entry.temperature_celsius,
-        )
-
-    @staticmethod
-    def _to_domain_condition(
-        condition: OpenWeatherCondition,
-    ) -> WeatherCondition:
-        return WeatherCondition(
-            code=condition.code,
-            group=condition.group,
-            description=condition.description,
-            icon=condition.icon,
         )

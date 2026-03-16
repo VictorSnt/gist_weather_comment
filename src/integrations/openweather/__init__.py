@@ -9,7 +9,6 @@ from src.integrations.openweather.types import (
     Coordinates,
     CurrentWeather,
     ForecastEntry,
-    LocationQuery,
     ResolvedLocation,
     WeatherCondition,
 )
@@ -19,7 +18,6 @@ __all__ = [
     "Coordinates",
     "CurrentWeather",
     "ForecastEntry",
-    "LocationQuery",
     "OpenWeather",
     "OpenWeatherContractError",
     "OpenWeatherNotFoundError",

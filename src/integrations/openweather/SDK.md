@@ -45,15 +45,6 @@ OpenWeather(
 
 ## Modelos
 
-### `LocationQuery`
-
-- estratégia exclusiva: cidade **ou** CEP
-- regras:
-  - `city` e `zipcode` não podem coexistir
-  - `zipcode` exige `country`
-  - `state` exige `city`
-- para `country=BR`, `zipcode` é normalizado para `12345-678`
-
 ### `ResolvedLocation`
 
 - `name`, `state`, `country`, `coordinates`
