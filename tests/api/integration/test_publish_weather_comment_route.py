@@ -8,6 +8,8 @@ import pytest
 from src.api.app import create_app
 from src.api.routes.github_gist import router as github_gist_router
 from src.shared.exceptions import (
+    GistAccessDeniedError,
+    GistCommentNotAllowedError,
     GitHubGistIntegrationError,
     LocationAmbiguousError,
     LocationNotFoundError,
@@ -149,6 +151,8 @@ class TestPublishWeatherCommentRoute:
             (LocationAmbiguousError("Location is ambiguous."), 409, "location_ambiguous"),
             (ProviderContractError("Unexpected 404 from provider."), 500, "integration_contract_error"),
             (WeatherProviderError("Upstream timeout."), 502, "upstream_failure"),
+            (GistAccessDeniedError("Access denied to gist."), 403, "gist_access_denied"),
+            (GistCommentNotAllowedError("Not allowed to comment on gist."), 403, "gist_comment_not_allowed"),
             (GitHubGistIntegrationError("GitHub unavailable."), 502, "upstream_failure"),
         ],
     )
@@ -195,5 +199,47 @@ class TestPublishWeatherCommentRoute:
         )
 
         assert response.status_code == 422
+        assert service.received_gist_id is None
+        assert service.received_city_query is None
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            {
+                "gist_id": "abc123",
+                "location": {
+                    "kind": "city",
+                },
+            },
+            {
+                "gist_id": "abc123",
+                "location": {
+                    "kind": "zipcode",
+                    "country": "BR",
+                },
+            },
+            {
+                "gist_id": "abc123",
+            },
+        ],
+    )
+    def test_post_weather_comments_returns_422_for_missing_required_fields(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        payload: dict[str, object],
+    ) -> None:
+        service = FakeWeatherCommentService(result=_published_comment())
+        client = _build_client(monkeypatch, service=service)
+
+        response = client.post(
+            "/v1/gists/weather-comments",
+            json=payload,
+        )
+
+        data =  response.json()
+
+        assert response.status_code == 422
+        assert data["error_code"] == "invalid_request"
+        assert data["field"] is not None
         assert service.received_gist_id is None
         assert service.received_city_query is None
