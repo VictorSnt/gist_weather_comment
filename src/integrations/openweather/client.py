@@ -52,11 +52,11 @@ class OpenWeather:
             not_found_message="Location not found by zipcode.",
         )
         if not response or not isinstance(response, dict):
-            raise OpenWeatherNotFoundError("Location not found by zipcode.")
+            raise OpenWeatherContractError("Invalid OpenWeather geocoding payload.")
         try:
             location_payload = GeocodingLocationPayload.model_validate(response)
-        except Exception:
-            raise OpenWeatherNotFoundError("Location not found by zipcode.")
+        except PydanticValidationError as exc:
+            raise OpenWeatherContractError("Invalid OpenWeather geocoding payload.") from exc
         return self.mapper.to_resolved_location(location_payload)
 
     async def geocode_direct(
@@ -186,7 +186,7 @@ class OpenWeather:
                 return schema.validate_python(payload)
             return schema.model_validate(payload)
         except PydanticValidationError as exc:
-            raise OpenWeatherRequestError(error_message) from exc
+            raise OpenWeatherContractError(error_message) from exc
 
     def _build_geocoding_query(self, *, city: str, state: str | None, country_code: str | None) -> str:
         normalized_city = city.strip()

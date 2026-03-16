@@ -70,10 +70,14 @@ OpenWeather(
 
 - `OpenWeatherNotFoundError`:
   - localização não encontrada (ex.: CEP/cidade inexistente)
+  - parâmetros insuficientes para busca (ex.: CEP sem país)
 - `OpenWeatherRequestError`:
-  - falhas HTTP/transporte/upstream (timeout, 4xx/5xx não semânticos)
+  - falhas HTTP/transporte/upstream (timeout, erro de rede)
+  - respostas 4xx/5xx do provider (exceto 404 semântico de "not found")
 - `OpenWeatherContractError`:
-  - quebra de contrato esperado do provider (ex.: 404 inesperado em endpoint conhecido)
+  - quebra de contrato esperado do provider
+  - payload inválido ou incompatível com o schema esperado
+  - 404 inesperado em endpoint conhecido (não semântico)
 
 ## Exemplo de uso
 

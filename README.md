@@ -134,6 +134,26 @@ curl -X POST 'http://localhost:8000/v1/gists/weather-comments' \
 }
 ```
 
+#### Erros (formato padrão)
+
+Todos os erros seguem o formato:
+
+```json
+{
+  "error_code": "string",
+  "message": "string",
+  "field": "string|null"
+}
+```
+
+Principais códigos:
+- `422 invalid_request`: payload inválido / schema incorreto.
+- `404 location_not_found` ou `gist_not_found`.
+- `403 gist_access_denied` ou `gist_comment_not_allowed`.
+- `409 location_ambiguous`.
+- `500 integration_contract_error` (contrato OpenWeather quebrado), `configuration_error`, `internal_error`.
+- `502 upstream_failure` (falha de transporte/disponibilidade do provider).
+
 ## Saúde da aplicação
 
 - `GET /v1/gists/health`
