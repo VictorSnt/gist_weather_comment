@@ -27,7 +27,7 @@ class WeatherCommentFormatter:
         ][: self.forecast_days_limit]
 
         first_sentence = (
-            f"{int(round(current_weather.temperature_celsius))}°C e {current_weather.current_condition} "
+            f"{int(round(current_weather.temperature_celsius))}°C e {current_weather.condition.description} "
             f"em {location.name} em {self._format_date(observed_date)}."
         )
         if not next_days:

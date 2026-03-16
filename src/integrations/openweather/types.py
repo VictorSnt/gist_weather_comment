@@ -155,10 +155,6 @@ class CurrentWeather(BaseModel):
             raise ValueError("Observed at must be timezone-aware.")
         return value
 
-    @property
-    def current_condition(self) -> str:
-        return self.condition.description
-
 
 class ForecastEntry(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
