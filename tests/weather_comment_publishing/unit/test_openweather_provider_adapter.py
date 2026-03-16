@@ -50,11 +50,17 @@ class FakeOpenWeather:
         return self.result_direct
 
 
-def _location(*, name: str, state: str | None, coordinates: Coordinates | None = None) -> ResolvedLocation:
+def _location(
+    *,
+    name: str,
+    state: str | None,
+    country: str = "BR",
+    coordinates: Coordinates | None = None,
+) -> ResolvedLocation:
     return ResolvedLocation(
         name=name,
         state=state,
-        country="BR",
+        country=country,
         coordinates=coordinates or Coordinates(latitude=-23.55, longitude=-46.63),
     )
 
@@ -83,7 +89,7 @@ async def test_resolve_city_uses_geocode_direct_when_city_present() -> None:
 
     assert result.name == "Sao Paulo"
     assert sdk.called == [
-        ("geocode_direct", {"city": "Sao Paulo", "state": "Sao Paulo", "country_code": "BR", "limit": 5}),
+        ("geocode_direct", {"city": "Sao Paulo", "state": "Sao Paulo", "country_code": None, "limit": 5}),
     ]
 
 
@@ -126,13 +132,22 @@ async def test_resolve_city_raises_location_not_found_when_state_filter_removes_
     with pytest.raises(LocationNotFoundError, match="Location not found."):
         await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None))
 
+@pytest.mark.asyncio
+async def test_resolve_city_raises_location_not_found_when_city_filter_removes_all_results() -> None:
+    sdk = FakeOpenWeather()
+    sdk.result_direct = [_location(name="Campinas", state="Sao Paulo")]
+    adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
+
+    with pytest.raises(LocationNotFoundError, match="Location not found."):
+        await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None))
+
 
 @pytest.mark.asyncio
 async def test_resolve_city_raises_location_ambiguous_when_multiple_results_match() -> None:
     sdk = FakeOpenWeather()
     sdk.result_direct = [
-        _location(name="Sao Paulo", state="Sao Paulo"),
-        _location(name="Sao Paulo", state="Sao Paulo"),
+        _location(name="Sao Paulo", state="Sao Paulo", country="BR"),
+        _location(name="Sao Paulo", state="Sao Paulo", country="PT"),
     ]
     adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
 
@@ -140,23 +155,16 @@ async def test_resolve_city_raises_location_ambiguous_when_multiple_results_matc
         await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", zipcode=None))
 
 @pytest.mark.asyncio
-async def test_resolve_city_returns_first_result_when_multiple_results_match_and_query_has_all_filters() -> None:
+async def test_resolve_city_raises_weather_provider_error_when_ambiguous_with_all_filters() -> None:
     sdk = FakeOpenWeather()
     sdk.result_direct = [
-        _location(name="Sao Paulo", state="Sao Paulo", coordinates=Coordinates(latitude=-23.55, longitude=-46.63)),
-        _location(name="Sao Paulo", state="Sao Paulo", coordinates=Coordinates(latitude=-22.92, longitude=-45.45)),
+        _location(name="Sao Paulo", state="Sao Paulo", country="BR"),
+        _location(name="Sao Paulo", state="Sao Paulo", country="BR"),
     ]
     adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
 
-    result = await adapter.resolve_city(
-        CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None)
-    )
-
-    assert result.name == "Sao Paulo"
-    assert result.state == "Sao Paulo"
-    assert result.country == "BR"
-    assert result.coordinates.latitude == -23.55
-    assert result.coordinates.longitude == -46.63
+    with pytest.raises(WeatherProviderError, match="Location is ambiguous after applying all filters."):
+        await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None))
 
 @pytest.mark.asyncio
 async def test_resolve_city_state_normalization_ignores_accent_and_case() -> None:
@@ -167,3 +175,13 @@ async def test_resolve_city_state_normalization_ignores_accent_and_case() -> Non
     result = await adapter.resolve_city(CityQuery(city="Sao Paulo", state="sao paulo", country="BR", zipcode=None))
 
     assert result.state == "São Paulo"
+
+@pytest.mark.asyncio
+async def test_resolve_city_name_normalization_ignores_accent_and_case() -> None:
+    sdk = FakeOpenWeather()
+    sdk.result_direct = [_location(name="São Paulo", state="Sao Paulo")]
+    adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
+
+    result = await adapter.resolve_city(CityQuery(city="sao paulo", state="Sao Paulo", country="BR", zipcode=None))
+
+    assert result.name == "São Paulo"

@@ -33,3 +33,6 @@ test:
 
 test-verbose:
 	PYTHONPATH=$(PYTHONPATH) UV_CACHE_DIR=$(UV_CACHE_DIR) UV_PROJECT_ENVIRONMENT=$(UV_PROJECT_ENVIRONMENT) uv run pytest -vv tests
+
+docker:
+	docker compose up --build --force-recreate --remove-orphans

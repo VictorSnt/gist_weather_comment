@@ -48,7 +48,7 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
             locations = await self.sdk_client.geocode_direct(
                 city=query.city or "",
                 state=query.state,
-                country_code=query.country,
+                country_code=None, # OpenWeather's direct geocoding não funciona bem com country_code, então aplicamos o filtro manualmente depois
                 limit=MAX_GEOCODING_RESULTS,
             )
         except OpenWeatherNotFoundError as exc:
@@ -67,15 +67,12 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         if not filtered_locations:
             raise LocationNotFoundError("Location not found.")
 
-        # O OpenWeather pode retornar múltiplas localizações equivalentes para uma mesma
-        # consulta por city/state/country. Quando a consulta já veio com todos os filtros
-        # disponíveis e ainda assim persistirem múltiplos resultados, usamos o primeiro
-        # retornado pelo provider.
 
         if len(filtered_locations) > 1:
             has_all_filters = bool(query.city and query.state and query.country)
             if not has_all_filters:
                 raise LocationAmbiguousError("Location is ambiguous.")
+            raise WeatherProviderError("Location is ambiguous after applying all filters.")
 
         return self._to_domain_location(filtered_locations[0])
 
@@ -131,6 +128,9 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         query: CityQuery,
     ) -> bool:
         if query.country and location.country.upper() != query.country.upper():
+            return False
+
+        if query.city and self._normalize_text(location.name) != self._normalize_text(query.city):
             return False
 
         if query.state is None:
