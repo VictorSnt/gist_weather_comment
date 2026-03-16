@@ -55,7 +55,7 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                 limit=MAX_GEOCODING_RESULTS,
             )
         except OpenWeatherNotFoundError as exc:
-            raise LocationNotFoundError("localidade não encontrada") from exc
+            raise LocationNotFoundError("Location not found.") from exc
         except OpenWeatherContractError as exc:
             raise ProviderContractError(str(exc)) from exc
         except OpenWeatherRequestError as exc:
@@ -68,10 +68,10 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         ]
 
         if not filtered_locations:
-            raise LocationNotFoundError("localidade não encontrada")
+            raise LocationNotFoundError("Location not found.")
 
         if len(filtered_locations) > 1:
-            raise LocationAmbiguousError("localidade ambígua")
+            raise LocationAmbiguousError("Location is ambiguous.")
 
         return self._to_domain_location(filtered_locations[0])
 
