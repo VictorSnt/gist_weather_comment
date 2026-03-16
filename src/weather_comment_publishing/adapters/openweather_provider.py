@@ -67,8 +67,15 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         if not filtered_locations:
             raise LocationNotFoundError("Location not found.")
 
+        # O OpenWeather pode retornar múltiplas localizações equivalentes para uma mesma
+        # consulta por city/state/country. Quando a consulta já veio com todos os filtros
+        # disponíveis e ainda assim persistirem múltiplos resultados, usamos o primeiro
+        # retornado pelo provider.
+
         if len(filtered_locations) > 1:
-            raise LocationAmbiguousError("Location is ambiguous.")
+            has_all_filters = bool(query.city and query.state and query.country)
+            if not has_all_filters:
+                raise LocationAmbiguousError("Location is ambiguous.")
 
         return self._to_domain_location(filtered_locations[0])
 

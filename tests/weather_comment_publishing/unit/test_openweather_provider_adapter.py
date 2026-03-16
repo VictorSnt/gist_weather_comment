@@ -50,12 +50,12 @@ class FakeOpenWeather:
         return self.result_direct
 
 
-def _location(*, name: str, state: str | None) -> ResolvedLocation:
+def _location(*, name: str, state: str | None, coordinates: Coordinates | None = None) -> ResolvedLocation:
     return ResolvedLocation(
         name=name,
         state=state,
         country="BR",
-        coordinates=Coordinates(latitude=-23.55, longitude=-46.63),
+        coordinates=coordinates or Coordinates(latitude=-23.55, longitude=-46.63),
     )
 
 
@@ -137,8 +137,26 @@ async def test_resolve_city_raises_location_ambiguous_when_multiple_results_matc
     adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
 
     with pytest.raises(LocationAmbiguousError, match="Location is ambiguous."):
-        await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None))
+        await adapter.resolve_city(CityQuery(city="Sao Paulo", state="Sao Paulo", zipcode=None))
 
+@pytest.mark.asyncio
+async def test_resolve_city_returns_first_result_when_multiple_results_match_and_query_has_all_filters() -> None:
+    sdk = FakeOpenWeather()
+    sdk.result_direct = [
+        _location(name="Sao Paulo", state="Sao Paulo", coordinates=Coordinates(latitude=-23.55, longitude=-46.63)),
+        _location(name="Sao Paulo", state="Sao Paulo", coordinates=Coordinates(latitude=-22.92, longitude=-45.45)),
+    ]
+    adapter = OpenWeatherProviderAdapter(sdk_client=sdk)
+
+    result = await adapter.resolve_city(
+        CityQuery(city="Sao Paulo", state="Sao Paulo", country="BR", zipcode=None)
+    )
+
+    assert result.name == "Sao Paulo"
+    assert result.state == "Sao Paulo"
+    assert result.country == "BR"
+    assert result.coordinates.latitude == -23.55
+    assert result.coordinates.longitude == -46.63
 
 @pytest.mark.asyncio
 async def test_resolve_city_state_normalization_ignores_accent_and_case() -> None:

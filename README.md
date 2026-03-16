@@ -195,6 +195,12 @@ Regras adicionais:
 
 - para `country=BR`, o CEP aceita `01001000` ou `01001-000`;
 - internamente, o CEP brasileiro é normalizado para `01001-000`.
+- para buscas por cidade, se o OpenWeather retornar múltiplas localidades e
+  a consulta não incluir `city`, `state` e `country`, a API retorna
+  `location_ambiguous`;
+- quando a consulta por cidade inclui `city`, `state` e `country` e mesmo assim
+  existirem múltiplos resultados equivalentes, o primeiro retorno do provider é
+  utilizado.
 
 ### Exemplo com `curl`
 
