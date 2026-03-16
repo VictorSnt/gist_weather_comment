@@ -1,5 +1,4 @@
 import os
-from functools import lru_cache
 
 from fastapi import Depends
 from fastapi.routing import APIRouter
@@ -24,7 +23,6 @@ from src.weather_comment_publishing.types import CityQuery
 github_gist_router = APIRouter(prefix="/v1/gists", tags=["github_gist"])
 
 
-@lru_cache
 def get_settings() -> Settings:
     return Settings.from_env(os.environ)
 
@@ -50,7 +48,6 @@ def _build_weather_comment_service(settings: Settings) -> WeatherCommentService:
     )
 
 
-@lru_cache
 def get_weather_comment_service() -> WeatherCommentService:
     settings = get_settings()
     return _build_weather_comment_service(settings=settings)

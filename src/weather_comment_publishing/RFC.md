@@ -186,6 +186,8 @@ A segunda frase só aparece quando houver previsão futura.
 
 ```text
 weather_comment_publishing/
+├── adapters/
+│   └── openweather_provider.py
 ├── types.py
 ├── protocols.py
 ├── formatter.py

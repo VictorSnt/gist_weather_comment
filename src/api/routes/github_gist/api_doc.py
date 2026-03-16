@@ -1,7 +1,9 @@
+from typing import Any
+
 from src.api.schemas import ErrorResponse, PublishWeatherCommentResponse
 
 
-publish_weather_comment_doc = {
+publish_weather_comment_doc: dict[str, Any] = {
     "summary": "Publica comentário de clima em um Gist",
     "description": (
         "Recebe um alvo de localidade por cidade ou CEP, consulta clima atual e previsão diária, "
