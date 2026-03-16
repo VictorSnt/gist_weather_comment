@@ -1,4 +1,4 @@
-# Desafio Caiena — API para publicação de comentários meteorológicos em Gist
+# API para publicação de comentários meteorológicos em Gist
 
 API HTTP em Python com **FastAPI** que integra com:
 
