@@ -7,10 +7,11 @@ from statistics import fmean
 from typing import Sequence
 
 from src.weather_comment_publishing.types import CurrentWeather, ForecastEntry, ResolvedLocation
+from src.weather_comment_publishing.protocols import WeatherCommentFormatterPort
 
 
 @dataclass(frozen=True, slots=True)
-class WeatherCommentFormatter:
+class WeatherCommentFormatter(WeatherCommentFormatterPort):
     forecast_days_limit: int
 
     def format_comment(
