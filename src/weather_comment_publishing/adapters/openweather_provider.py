@@ -46,7 +46,7 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                 return self._to_domain_location(location)
 
             locations = await self.sdk_client.geocode_direct(
-                city=query.city or "",
+                city=query.city,
                 state=query.state,
                 country_code=None, # OpenWeather's direct geocoding não funciona bem com country_code, então aplicamos o filtro manualmente depois
                 limit=MAX_GEOCODING_RESULTS,

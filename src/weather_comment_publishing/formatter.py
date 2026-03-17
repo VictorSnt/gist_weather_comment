@@ -44,7 +44,7 @@ class WeatherCommentFormatter:
         for entry in entries:
             grouped_temperatures[entry.forecasted_at.date()].append(entry.temperature_celsius)
         averages = [(forecast_date, fmean(temperatures)) for forecast_date, temperatures in grouped_temperatures.items()]
-        averages.sort(key=lambda value: value[0])
+        averages.sort(key=lambda value: value[0]) # sort by date
         return averages
 
     def _format_date(self, value: date) -> str:

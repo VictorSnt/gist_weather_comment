@@ -8,7 +8,7 @@ from github.GithubException import (
     UnknownObjectException,
 )
 
-from src.integrations.github_gist.client import GitHubGistClient
+from src.weather_comment_publishing.adapters.github_provider import GitHubGistProvider
 from src.shared.exceptions import (
     GistAccessDeniedError,
     GistCommentNotAllowedError,
@@ -57,13 +57,13 @@ class FakeGithub:
 
 def _patch_github(monkeypatch: pytest.MonkeyPatch, fake_github: FakeGithub) -> None:
     monkeypatch.setattr(
-        "src.integrations.github_gist.client.Github",
+        "src.weather_comment_publishing.adapters.github_provider.Github",
         lambda token: fake_github,
     )
 
 
-def _client() -> GitHubGistClient:
-    return GitHubGistClient(token="token")
+def _client() -> GitHubGistProvider:
+    return GitHubGistProvider(token="token")
 
 
 @pytest.mark.asyncio

@@ -9,7 +9,7 @@ from src.api.schemas import (
     PublishWeatherCommentRequest,
     PublishWeatherCommentResponse,
 )
-from src.integrations.github_gist.client import GitHubGistClient
+from src.weather_comment_publishing.adapters.github_provider import GitHubGistProvider
 from src.integrations.openweather import OpenWeather
 from src.shared.settings import Settings
 from src.weather_comment_publishing.adapters.openweather_provider import (
@@ -36,7 +36,7 @@ def _build_weather_comment_service(settings: Settings) -> WeatherCommentService:
         timeout_seconds=settings.http_timeout_seconds,
     )
     openweather_client = OpenWeatherProviderAdapter(sdk_client=openweather_sdk)
-    github_client = GitHubGistClient(token=settings.github_token)
+    github_client = GitHubGistProvider(token=settings.github_token)
     formatter = WeatherCommentFormatter(
         forecast_days_limit=settings.forecast_days_limit
     )
