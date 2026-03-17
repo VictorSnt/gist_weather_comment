@@ -81,7 +81,7 @@ class TestWeatherCommentFormatter:
 
         assert comment.endswith("22°C em 12/03 e 24°C em 13/03.")
 
-    def test_format_comment_without_state_uses_city_only(
+    def test_format_comment_with_state_uses_city_only(
         self,
         coordinates: Coordinates,
         current_weather: CurrentWeather,
@@ -91,7 +91,7 @@ class TestWeatherCommentFormatter:
         
         location = ResolvedLocation(
             name="Rio de Janeiro",
-            state=None,
+            state="Rio de Janeiro",
             country="BR",
             coordinates=coordinates,
         )

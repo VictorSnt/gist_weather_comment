@@ -114,10 +114,10 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         if query.city and self._normalize_text(location.name) != self._normalize_text(query.city):
             return False
 
-        if query.state is None:
-            return True
+        if query.state and self._normalize_text(location.state) != self._normalize_text(query.state):
+            return False
 
-        return self._normalize_text(location.state) == self._normalize_text(query.state)
+        return True
     
     def _select_single_location(
         self,
