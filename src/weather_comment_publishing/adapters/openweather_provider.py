@@ -7,6 +7,8 @@ from src.integrations.openweather import OpenWeather
 from src.integrations.openweather import (
     Coordinates as OpenWeatherCoordinates,
     ResolvedLocation as OpenWeatherResolvedLocation,
+    CurrentWeather as OpenWeatherCurrentWeather,
+    ForecastEntry as OpenWeatherForecastEntry,
 )
 from src.integrations.openweather.exceptions import (
     OpenWeatherContractError,
@@ -45,10 +47,12 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                 )
                 return self._to_domain_location(location)
 
+            # OpenWeather direct geocoding não funciona bem com country_code,
+            # então aplicamos o filtro manualmente depois.
             locations = await self.sdk_client.geocode_direct(
                 city=query.city,
                 state=query.state,
-                country_code=None, # OpenWeather's direct geocoding não funciona bem com country_code, então aplicamos o filtro manualmente depois
+                country_code=None,
                 limit=MAX_GEOCODING_RESULTS,
             )
         except OpenWeatherNotFoundError as exc:
@@ -58,23 +62,14 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
         except OpenWeatherRequestError as exc:
             raise WeatherProviderError(str(exc)) from exc
 
-        filtered_locations = [
+        matching_locations = [
             location
             for location in locations
             if self._matches_location_filters(location, query)
         ]
 
-        if not filtered_locations:
-            raise LocationNotFoundError("Location not found.")
-
-
-        if len(filtered_locations) > 1:
-            has_all_filters = bool(query.city and query.state and query.country)
-            if not has_all_filters:
-                raise LocationAmbiguousError("Location is ambiguous.")
-            raise WeatherProviderError("Location is ambiguous after applying all filters.")
-
-        return self._to_domain_location(filtered_locations[0])
+        selected_location = self._select_single_location(locations=matching_locations, query=query)
+        return self._to_domain_location(location=selected_location)
 
     async def get_current_weather(self, coordinates: Coordinates) -> CurrentWeather:
         try:
@@ -84,16 +79,7 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                     longitude=coordinates.longitude,
                 )
             )
-            return CurrentWeather(
-                temperature_celsius=weather.temperature_celsius,
-                condition=WeatherCondition(
-                    code=weather.condition.code,
-                    group=weather.condition.group,
-                    description=weather.condition.description,
-                    icon=weather.condition.icon,
-                ),
-                observed_at=weather.observed_at,
-            )
+            return self._to_domain_current_weather(weather)
         except OpenWeatherContractError as exc:
             raise ProviderContractError(str(exc)) from exc
         except OpenWeatherRequestError as exc:
@@ -110,17 +96,12 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                     longitude=coordinates.longitude,
                 )
             )
-            return [
-                ForecastEntry(
-                    forecasted_at=entry.forecasted_at,
-                    temperature_celsius=entry.temperature_celsius,
-                )
-                for entry in entries
-            ]
+            return self._to_domain_forecast(entries)
         except OpenWeatherContractError as exc:
             raise ProviderContractError(str(exc)) from exc
         except OpenWeatherRequestError as exc:
             raise WeatherProviderError(str(exc)) from exc
+
 
     def _matches_location_filters(
         self,
@@ -137,6 +118,24 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
             return True
 
         return self._normalize_text(location.state) == self._normalize_text(query.state)
+    
+    def _select_single_location(
+        self,
+        locations: list[OpenWeatherResolvedLocation],
+        query: CityQuery,
+    ) -> OpenWeatherResolvedLocation:
+        
+        if not locations:
+            raise LocationNotFoundError("Location not found.")
+
+        if len(locations) == 1:
+            return locations[0]
+
+        has_all_filters = bool(query.city and query.state and query.country)
+        if not has_all_filters:
+            raise LocationAmbiguousError("Location is ambiguous.")
+
+        raise WeatherProviderError("Location is ambiguous after applying all filters.")
 
     @staticmethod
     def _normalize_text(value: str | None) -> str:
@@ -160,3 +159,25 @@ class OpenWeatherProviderAdapter(WeatherProviderPort):
                 longitude=location.coordinates.longitude,
             ),
         )
+
+    @staticmethod
+    def _to_domain_current_weather(weather: OpenWeatherCurrentWeather) -> CurrentWeather:
+        return CurrentWeather(
+            temperature_celsius=weather.temperature_celsius,
+            condition=WeatherCondition(
+                code=weather.condition.code,
+                group=weather.condition.group,
+                description=weather.condition.description,
+                icon=weather.condition.icon,
+            ),
+            observed_at=weather.observed_at,
+        )
+    
+    @staticmethod
+    def _to_domain_forecast(entries: list[OpenWeatherForecastEntry]) -> list[ForecastEntry]:
+        return [
+            ForecastEntry(
+                forecasted_at=entry.forecasted_at,
+                temperature_celsius=entry.temperature_celsius,
+            ) for entry in entries
+        ]
