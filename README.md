@@ -53,7 +53,13 @@ Fluxo resumido:
 ## Requisitos
 
 - Python **3.12.x**
-- [uv](https://docs.astral.sh/uv/)
+- [uv](https://docs.astral.sh/uv/)  
+  Para instalar o `uv`, siga as instruções de instalação disponíveis na [documentação oficial](https://docs.astral.sh/uv/). Exemplos para sistemas Unix:
+  ```bash
+  curl -Ls https://astral.sh/uv/install.sh | sh
+  # ou
+  pip install uv
+  ```
 - chave da API OpenWeatherMap
 - token clássico do GitHub com escopo **`gist`**
 - opcionalmente: Docker e Docker Compose
